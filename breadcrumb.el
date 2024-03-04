@@ -345,6 +345,7 @@ to ROOT."
                   m))))
 
 (defun bc--project-crumbs-1 (bfn)
+
   "Helper for `breadcrumb-project-crumbs'.
 Given BFN, the `buffer-file-name', produce a a list of
 propertized crumbs."
@@ -366,11 +367,15 @@ propertized crumbs."
               retval)
       retval))))
 
+(defvar-local bc--project-crumbs-1-cache (make-hash-table :test 'equal))
+
 ;;;###autoload
 (cl-defun breadcrumb-project-crumbs ()
   "Describing the current file inside project."
   (bc--summarize
-   (if buffer-file-name (bc--project-crumbs-1 buffer-file-name)
+   (if buffer-file-name (or (gethash buffer-file-name bc--project-crumbs-1-cache)
+                            (puthash buffer-file-name (bc--project-crumbs-1 buffer-file-name)
+                                     bc--project-crumbs-1-cache))
      (list (propertize (buffer-name) 'face 'bc-project-leaf-face)))
    (bc--length bc-project-max-length)
    (propertize bc-project-crumb-separator
